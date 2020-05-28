@@ -4,11 +4,11 @@
 <head>
 	<meta charset="UTF-8" />
 
-	<script src="lib/croquet.min.js"></script>
+	<script src="https://croquet.io/sdk/croquet-latest.min.js"></script>
 
 	<meta name=viewport content="width=device-width, initial-scale=1">
 
-	<title>MultiplayerTest2</title>
+	<title>MultiplayerTest4</title>
 	<script src="lib/phaser.js"></script>
 	<script src="main.js"></script>
 	<script>
@@ -205,7 +205,7 @@
 	}
 
 
-	Croquet.startSession('Player',MirrorModel,ClientViews);
+	Croquet.Session.join('Player',MirrorModel,ClientViews);
 
 
 	</script>
