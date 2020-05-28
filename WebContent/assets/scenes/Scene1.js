@@ -212,31 +212,46 @@ class Scene1 extends Phaser.Scene {
 
 				this.currentSpeed-=4;
 
-			}else{
+			}
+
+			else{
 
 		        if (Math.abs(this.currentSpeed) > 0)
 		        {
 
 		        	this.direction = Math.sign(this.currentSpeed)*-1;
 
-		            this.currentSpeed += 10*this.direction;
+		            this.currentSpeed += 8*this.direction;
+		            if(Math.abs(this.currentSpeed) <= 4)
+		            {
+		            	this.currentSpeed = 0;
+		            }
 		        }
 
 		    }
 
-
+console.log("Velocidad ac " + this.currentSpeed);
 			if(this.A_isDown){
+				if(this.currentSpeed != 0)
+				{
 				this.fplayer.rotation-=0.05;
+				}
+				
+				
 			}else if(this.D_isDown){
+				if(this.currentSpeed != 0)
+				{
 				this.fplayer.rotation+=0.05;
+				}
 			}
 
-			if(this.currentSpeed >=800){
+			if(Math.abs(this.currentSpeed) >=800){
+				var signo = Math.sign(this.currentSpeed)
 
-				this.currentSpeed = 800;
+				this.currentSpeed = signo*800;
 			}
 
-			if (Math.abs(this.currentSpeed) > 0)
+			if (Math.abs(this.currentSpeed) >= 0)
 		    {
 		      this.rotationVelocity =  this.physics.velocityFromRotation(this.fplayer.rotation, this.currentSpeed, this.fplayer.body.velocity);
 		      		   
