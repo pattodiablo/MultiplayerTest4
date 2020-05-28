@@ -23,7 +23,7 @@
  			this.subscribe(this.sessionId, "view-join", this.addUser);
 		  this.subscribe(this.sessionId, "view-exit", this.deleteUser);
 			this.subscribe('gameNetwork',"updatePlayerList",this.updatePlayerList);
-		  this.subscribe('gameNetwork',"playerDownActionMade", this.moveNetPlayer);
+		  this.subscribe('gameNetwork',"updatePos", this.moveNetPlayer);
 
 			this.allPlayers = [];
 			console.log('mySessionID ' + this.sessionId);
@@ -136,6 +136,13 @@
 
 		}
 
+		setCurrentScene(scene){
+
+			this.gameScene =  scene;
+			console.log('gameScene ' + this.gameScene);
+
+		}
+
 		confirmPlayerAdded(sessionId){
 				console.log('registrando en croquet usuario ' + sessionId);
 				this.publish('gameNetwork',"confirmPlayer", sessionId);
@@ -165,22 +172,25 @@
 		}
 		createCroquetPlayer(allPlayers){
 
-		var hasPlayer =	this.game.scene.keys.Scene1.addPhaserNetworkPlayer(allPlayers);
+		var hasPlayer =	this.gameScene.addPhaserNetworkPlayer(allPlayers);
 
 
 		}
 
 		getPlayersPos(){
-			this.game.scene.keys.Scene1.updatePos();
+			this.gameScene.updatePos();
 		}
 
 		moveNetPhaserPlayer(data){
-
-				this.game.scene.keys.Scene1.moveNetPhaserPlayer(data);
+				
+				if(typeof(this.gameScene) != 'undefined'){
+				this.gameScene.moveNetPhaserPlayer(data);
+				}
+				
 		}
 
-		downActionMade(data){
-				this.publish('gameNetwork',"playerDownActionMade", data);
+		updatePos(data){
+				this.publish('gameNetwork',"updatePos", data);
 		}
 
 		darEmitiendoMensaje(mensaje){
@@ -190,7 +200,7 @@
 
 		escribirMensaje(mensaje){
 
-			this.game.scene.keys.Scene1.printMessage(mensaje);
+			this.gameScene.printMessage(mensaje);
 		}
 	}
 

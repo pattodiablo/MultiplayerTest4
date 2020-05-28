@@ -18,8 +18,8 @@
     },
     {
       "type": "image",
-      "key": "player",
-      "url": "assets/sprites/player.png",
+      "key": "auto1",
+      "url": "assets/sprites/auto1.png",
       "normalMap": ""
     },
     {
@@ -29,7 +29,7 @@
     }
   ]},
   "meta": {
-    "generated": "1589466217455",
+    "generated": "1590675844909",
     "app": "Phaser Editor 2D - Asset Pack Editor - 2.1.7",
     "contentType": "Phaser v3 Asset Pack",
     "url": "https://phasereditor2d.com",

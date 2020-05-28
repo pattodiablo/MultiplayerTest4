@@ -4,31 +4,32 @@
 /* START OF COMPILED CODE */
 
 class Scene1 extends Phaser.Scene {
-
+	
 	constructor() {
-
+	
 		super("Scene1");
-
+		
 	}
-
+	
 	_preload() {
-
+	
 		this.load.pack("pack", "assets/pack.json");
-
+		
 	}
-
+	
 	_create() {
-
-		this.add.image(1920.0, 1080.0, "spaceBG");
-
+	
+		var spaceBG = this.add.image(1900.0, 1060.0, "spaceBG");
+		spaceBG.setScale(1.2, 1.2);
+		
 		this.fMainPlayer = this.add.group([  ]);
 		this.fNetworkPlayers = this.add.group([  ]);
-
-
+		
+		
 	}
-
-
-
+	
+	
+	
 	/* START-USER-CODE */
 	preload() {
 		this._preload();
@@ -37,14 +38,7 @@ class Scene1 extends Phaser.Scene {
 
 		}
 
-	moveplayer(pointer){
-	if(typeof(this.fplayer) != "undefined"){
-
-		let cursor = pointer;
-	  let angle = Phaser.Math.Angle.Between(this.fplayer.x, this.fplayer.y, cursor.x + this.cameras.main.scrollX, cursor.y + this.cameras.main.scrollY);
-
-		}
-	}
+	
 
 	create() {
 
@@ -54,12 +48,8 @@ class Scene1 extends Phaser.Scene {
 		 this.staticFriction = 1;
 		 this.leftPush = false;
 		 this.rigthPush = false;
+		 this.currentSpeed = 0;
 
-		var pointer = this.input.activePointer;
-
-		this.input.on('pointerdown', this.downAction, this);
-		this.input.on('pointerup',this.upAction, this);
-		this.input.on('pointermove',this.moveplayer,this);
 
 		this.game.croquetView.addCroquetNetworkPlayer();
 		this.game.croquetView.getSessionID();
@@ -77,6 +67,8 @@ class Scene1 extends Phaser.Scene {
 		this.A_keyObj = this.input.keyboard.addKey('A');  // Get key object
 		this.S_keyObj = this.input.keyboard.addKey('S');  // Get key object
 		this.D_keyObj = this.input.keyboard.addKey('D');  // Get key object
+
+		this.game.croquetView.setCurrentScene(this);
 
 	}
 
@@ -98,16 +90,10 @@ class Scene1 extends Phaser.Scene {
 		if(this.fMainPlayer.getLength()<=0){
 
 	  		console.log('creando player');
-			var randomColor =  this.getColor();
-			let playerShape = this.add.graphics();
-			playerShape.lineStyle(5, 0xFF00FF, 1.0);
-			playerShape.fillStyle(randomColor, 1);
-			playerShape.fillRect(0, 0, 100, 50);
 
-			let PlayerTexture = playerShape.generateTexture('playerShape',100,50);
-			playerShape.destroy();
 
-			var player = this.physics.add.image(this.scale.width/2,this.scale.height/2,this.textures.get("playerShape"));
+			var player = this.physics.add.image(this.scale.width/2,this.scale.height/2,this.textures.get("auto1"));
+			player.setScale(0.15,0.15);
 			player.setOrigin(0.6, 0.5);
 			player.setCollideWorldBounds();
 
@@ -140,9 +126,10 @@ class Scene1 extends Phaser.Scene {
 				console.log('mi session es -> ' + this.game.croquetView.getSessionID());
 				if(NetPlayer != this.game.croquetView.getSessionID()){
 					console.log('agrego todos los jugadores nuevos ' + NetPlayer);
-					var player = this.physics.add.image(this.scale.width/2,this.scale.height/2,this.textures.get("playerShape"));
+					var player = this.physics.add.image(this.scale.width/2,this.scale.height/2,this.textures.get("auto1"));
+					player.setScale(0.15,0.15);
 					player.setOrigin(0.6, 0.5);
-						player.setCollideWorldBounds();
+					player.setCollideWorldBounds();
 					var NetplayerObject = {NetPlayer:player,id:NetPlayer};
 					this.fNetPLayers.push(NetplayerObject);
 				}else{
@@ -155,22 +142,32 @@ class Scene1 extends Phaser.Scene {
 			console.log('no hay jugadores online');
 		}
 
-  this.updatePos();
+	this.netData = {
+				sessionId:this.mySession,
+				xpos:this.fplayer.x,
+				ypos:this.fplayer.y,
+				xvelo:this.fplayer.body.velocity.x,
+				yvelo:this.fplayer.body.velocity.y,
+				rotation:this.fplayer.rotation
+			}
+
+  	this.updatePos();
 	this.game.croquetView.getPlayersPos();
 
 	}
 
 	updatePos(){
 
-		var netData = {
+		this.netData = {
 			sessionId:this.mySession,
 			xpos:this.fplayer.x,
 			ypos:this.fplayer.y,
 			xvelo:this.fplayer.body.velocity.x,
-			yvelo:this.fplayer.body.velocity.y
+			yvelo:this.fplayer.body.velocity.y,
+			rotation:this.fplayer.rotation
 		}
 
-		this.game.croquetView.downActionMade(netData);
+		this.game.croquetView.updatePos(this.netData);
 
 	}
 
@@ -209,11 +206,11 @@ class Scene1 extends Phaser.Scene {
 
 			if(this.W_isDown){
 				
-				this.currentSpeed = 500;
+				this.currentSpeed+=4;
 
 			}else if(this.S_isDown){
 
-				this.currentSpeed = -300;
+				this.currentSpeed-=4;
 
 			}else{
 
@@ -229,20 +226,26 @@ class Scene1 extends Phaser.Scene {
 
 
 			if(this.A_isDown){
-				this.fplayer.rotation-=0.1;
+				this.fplayer.rotation-=0.05;
 			}else if(this.D_isDown){
-				this.fplayer.rotation+=0.1;
+				this.fplayer.rotation+=0.05;
 			}
 
+			if(this.currentSpeed >=800){
+
+				this.currentSpeed = 800;
+			}
 
 			if (Math.abs(this.currentSpeed) > 0)
 		    {
-		        this.physics.velocityFromRotation(this.fplayer.rotation, this.currentSpeed, this.fplayer.body.velocity);
-		    }
+		      this.rotationVelocity =  this.physics.velocityFromRotation(this.fplayer.rotation, this.currentSpeed, this.fplayer.body.velocity);
+		      		   
+		     }
 
-
-
+			this.updatePos();
 		}	
+
+
 	}
 
 	printMessage(mensaje){
@@ -260,54 +263,12 @@ class Scene1 extends Phaser.Scene {
 				NetplayerObject.NetPlayer.y = data.ypos;
 				NetplayerObject.NetPlayer.body.velocity.x = data.xvelo;
 				NetplayerObject.NetPlayer.body.velocity.y = data.yvelo;
+				NetplayerObject.NetPlayer.rotation = data.rotation;
 			}
 		});
 
 	}
-	downAction(pointer){
-
-
-			this.swipeCoordX = pointer.x;
-			this.swipeCoordY = pointer.y;
-
-			var netData = {
-				sessionId:this.mySession,
-				xpos:this.fplayer.x,
-				ypos:this.fplayer.y,
-				xvelo:this.fplayer.body.velocity.x,
-				yvelo:this.fplayer.body.velocity.y
-			}
-
-			this.game.croquetView.downActionMade(netData);
-
-	}
-
-	upAction(pointer){
-
-			this.swipeCoordX2 = pointer.x;
-			this.swipeCoordY2 = pointer.y;
-
-			this.powerY =  Math.abs(this.swipeCoordY2 - this.swipeCoordY);
-			this.powerX =  Math.abs(this.swipeCoordX2 - this.swipeCoordX);
-			this.directionY = Math.sign(this.swipeCoordY2 - this.swipeCoordY);
-			this.directionX = Math.sign(this.swipeCoordX2 - this.swipeCoordX);
-
-			this.fplayer.body.velocity.y = this.powerY*this.directionY;
-			this.fplayer.body.velocity.x = this.powerX*this.directionX;
-
-
-			var netData = {
-				sessionId:this.mySession,
-				xpos:this.fplayer.x,
-				ypos:this.fplayer.y,
-				xvelo:this.fplayer.body.velocity.x,
-				yvelo:this.fplayer.body.velocity.y
-			}
-
-			this.game.croquetView.downActionMade(netData);
-
-
-	}
+	
 
 	/* END-USER-CODE */
 }
