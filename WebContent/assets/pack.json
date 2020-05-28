@@ -1,0 +1,38 @@
+{
+  "section1": {"files": [
+    {
+      "type": "animation",
+      "key": "animations",
+      "url": "assets/animations.json"
+    },
+    {
+      "type": "sceneFile",
+      "key": "Scene1",
+      "url": "assets/scenes/Scene1.js"
+    },
+    {
+      "type": "multiatlas",
+      "key": "textures",
+      "url": "assets/atlas/textures.json",
+      "path": "assets/atlas"
+    },
+    {
+      "type": "image",
+      "key": "player",
+      "url": "assets/sprites/player.png",
+      "normalMap": ""
+    },
+    {
+      "type": "image",
+      "key": "spaceBG",
+      "url": "assets/sprites/spaceBG.jpg"
+    }
+  ]},
+  "meta": {
+    "generated": "1589466217455",
+    "app": "Phaser Editor 2D - Asset Pack Editor - 2.1.7",
+    "contentType": "Phaser v3 Asset Pack",
+    "url": "https://phasereditor2d.com",
+    "version": "2"
+  }
+}

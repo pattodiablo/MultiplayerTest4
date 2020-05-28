@@ -1,0 +1,216 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+	<meta charset="UTF-8" />
+
+	<script src="lib/croquet.min.js"></script>
+
+	<meta name=viewport content="width=device-width, initial-scale=1">
+
+	<title>MultiplayerTest2</title>
+	<script src="lib/phaser.js"></script>
+	<script src="main.js"></script>
+	<script>
+
+	class MirrorModel extends Croquet.Model {
+
+		init() {
+
+			this.subscribe('gameNetwork',"darEmitiendoMensaje",this.emitirMensaje);
+			this.subscribe('gameNetwork',"createNetworkPlayer", this.createCroquetPlayer);
+			this.subscribe('gameNetwork',"confirmPlayer",this.storePlayer);
+ 			this.subscribe(this.sessionId, "view-join", this.addUser);
+		  this.subscribe(this.sessionId, "view-exit", this.deleteUser);
+			this.subscribe('gameNetwork',"updatePlayerList",this.updatePlayerList);
+		  this.subscribe('gameNetwork',"playerDownActionMade", this.moveNetPlayer);
+
+			this.allPlayers = [];
+			console.log('mySessionID ' + this.sessionId);
+		}
+		addUser(id) {
+
+			console.log(id + ' acaba de ingresar');
+
+		}
+		deleteUser(id) {
+
+
+
+				const index =  this.allPlayers.indexOf(id);
+				if (index > -1) {
+				   this.allPlayers.splice(index, 1);
+				}
+
+
+				this.publish('gameNetwork',"removePlayer",id);
+				console.log('user ' + id + ' has been removed from Model');
+
+
+	     }
+
+		storePlayer(sessionId){
+
+				 this.allPlayers.push(sessionId);
+				 console.log('sesion registrada:' +  this.allPlayers);
+				 this.publish('gameNetwork', "populatePlayers", this.allPlayers);
+	//console.log('hasta aqui ' + allPlayers.getLength());
+			}
+		updatePlayerList(sessionId){
+
+	  this.publish('gameNetwork', "populatePlayers", this.allPlayers);
+
+		}
+
+		createCroquetPlayer(){
+
+				this.publish('gameNetwork',"createPLayer",  this.allPlayers);
+		}
+
+
+		moveNetPlayer(data){
+
+				this.publish('gameNetwork',"populateMovement",  data);
+		}
+
+
+		emitirMensaje(mensaje){
+
+			var numeroRandom = Math.ceil(this.random()*10);
+
+			var fraseCompleta = mensaje + ' ' + 'numero ' + numeroRandom;
+
+			this.publish('gameNetwork',"emitirMensaje", fraseCompleta );
+
+		}
+	}
+
+
+	MirrorModel.register();
+
+	class ClientViews extends Croquet.View {
+
+		constructor(model) {
+			super(model);
+			this.model =  model;
+
+			this.subscribe('gameNetwork',"emitirMensaje",this.escribirMensaje);
+			this.subscribe('gameNetwork',"createPLayer",this.createCroquetPlayer);
+			this.subscribe('gameNetwork',"removePlayer",this.removeCroquetPlayer);
+ 			this.subscribe('gameNetwork', "populatePlayers", this.populatePlayers);
+			this.subscribe('gameNetwork',"populateMovement",  this.moveNetPhaserPlayer);
+
+			this.game = null;
+			this.crearJuego(this); //me paso croquet
+			console.log('MyCroquetId ' + this.viewId);
+		}
+
+
+
+		crearJuego(croquetView){ //recibo croquet
+
+			this.game = new Phaser.Game({
+			    "title": "MultiplayerTest2",
+			    "width": document.body.clientWidth,
+			    "height": document.documentElement["scrollHeight"],
+					"physics": {
+						 default: 'arcade',
+						 arcade: {
+								 gravity: { y: 0 },
+								 debug: false
+						 }
+				 },
+			    "type": Phaser.AUTO,
+			    "backgroundColor": "#88F",
+			    "parent": "game-container",
+			    "scale": {
+			        "mode": Phaser.Scale.FIT,
+			        "autoCenter": Phaser.Scale.CENTER_BOTH
+			    }
+				});
+
+				this.game.croquetView = croquetView; //envio croquet a phaser
+				this.game.scene.add("Boot", Boot, true);
+
+
+
+		}
+
+		confirmPlayerAdded(sessionId){
+				console.log('registrando en croquet usuario ' + sessionId);
+				this.publish('gameNetwork',"confirmPlayer", sessionId);
+
+		}
+		getSessionID(){
+			return this.viewId;
+		//	console.log(this.sessionId);
+		}
+		addCroquetNetworkPlayer(){
+				this.publish('gameNetwork',"createNetworkPlayer");
+
+		}
+
+		populatePlayers(allPlayers){
+			console.log('populando')
+			this.game.scene.keys.Scene1.addPhaserNetworkOnlinePlayer(allPlayers);
+		}
+
+		removeCroquetPlayer(sessionId){
+			this.game.scene.keys.Scene1.removePhaserNetworkPlayer(sessionId);
+		}
+
+		updatePlayerList(){
+	this.publish('gameNetwork',"updatePlayerList");
+
+		}
+		createCroquetPlayer(allPlayers){
+
+		var hasPlayer =	this.game.scene.keys.Scene1.addPhaserNetworkPlayer(allPlayers);
+
+
+		}
+
+		getPlayersPos(){
+			this.game.scene.keys.Scene1.updatePos();
+		}
+
+		moveNetPhaserPlayer(data){
+
+				this.game.scene.keys.Scene1.moveNetPhaserPlayer(data);
+		}
+
+		downActionMade(data){
+				this.publish('gameNetwork',"playerDownActionMade", data);
+		}
+
+		darEmitiendoMensaje(mensaje){
+
+			this.publish('gameNetwork',"darEmitiendoMensaje",mensaje)
+		}
+
+		escribirMensaje(mensaje){
+
+			this.game.scene.keys.Scene1.printMessage(mensaje);
+		}
+	}
+
+
+	Croquet.startSession('Player',MirrorModel,ClientViews);
+
+
+	</script>
+
+	<style>
+		body {
+			background: black;
+			margin: 0;
+			padding: 0;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="game-container">
+	</div>
+</body>
+</html>
